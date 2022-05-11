@@ -107,7 +107,26 @@ variables:
   trigger_entity: !input trigger_entity
   notification_title: !input notification_title
   notification_message: !input notification_message
-  persistent_notification: !input n_off
+  persistent_notification: !input persistent_notification
+  action_1_title: !input action_1_title
+  action_1_uri: !input action_1_uri
+  first_action: !input first_action
+  action_2_title: !input action_2_title
+  action_2_uri: !input action_2_uri
+  second_action: !input second_action
+  action_3_title: !input action_3_title
+  action_3_uri: !input action_3_uri
+  third_action: !input third_action
+
+trigger:
+  platform: state
+  entity_id: !input trigger_entity
+  from: "off"
+  to: "on"
+
+action:
+  # Reset trigger entity
+  - service: input_boolean.turn_off
     entity_id: !input trigger_entity
 
   # Send actionable notification
@@ -137,4 +156,19 @@ variables:
             {% set actions.data = actions.data + [action] %}
           {% endif %}
         {% endfor %}
-        {{ actiontion
+        {{ actions.data }}
+
+  # Wait for the user to select an action
+  - wait_for_trigger:
+      platform: event
+      event_type: mobile_app_notification_action
+
+  # Do the action that the user selected
+  - choose:
+    - conditions: "{{ wait.trigger.event.data.action == 'action1' }}"
+      sequence: !input first_action
+    - conditions: "{{ wait.trigger.event.data.action == 'action2' }}"
+      sequence: !input second_action
+    - conditions: "{{ wait.trigger.event.data.action == 'action3' }}"
+      sequence: !input third_action
+      
